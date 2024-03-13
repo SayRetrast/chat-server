@@ -7,8 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id       String @id @unique @default(uuid())
-  username String @unique
-  password String
+model Users {
+  userId        String          @id @unique @default(uuid())
+  username      String          @unique
+  password      String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  RefreshTokens RefreshTokens[]
+}
+
+model RefreshTokens {
+  refreshToken String   @id @unique
+  expiresAt    DateTime
+  user         Users    @relation(fields: [userId], references: [userId])
+  userId       String
 }

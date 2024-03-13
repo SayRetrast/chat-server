@@ -1,6 +1,6 @@
 import { UserDto } from 'src/dtos/user.dto';
 import { UserService } from 'src/services/user.service';
-import { User as UserModel } from '@prisma/client';
+import { Users as UserModel } from '@prisma/client';
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 
 @Controller('user')
