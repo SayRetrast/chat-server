@@ -2,19 +2,25 @@ import { BadRequestException, Injectable, UnauthorizedException, UnprocessableEn
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from './user.service';
 import { compare, hash } from 'bcrypt';
-import { PrismaService } from './prisma.service';
 import { accessTokenConfig, refreshTokenConfig } from '../lib/jwt.config';
-import { convertDaysToMs } from 'src/lib/utils';
+import { Response } from 'express';
+import { RefreshTokenService } from './refreshToken.service';
+import { Users } from '@prisma/client';
+import { ExtendedRequest } from 'src/interfaces/extendedRequest.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
-    private readonly prisma: PrismaService
+    private readonly refreshTokenService: RefreshTokenService
   ) {}
 
-  async signIn(username: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async signIn(
+    username: string,
+    password: string,
+    res: Response
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     if (!username || !password) {
       throw new BadRequestException('Username and password are required.');
     }
@@ -28,18 +34,16 @@ export class AuthService {
       throw new UnauthorizedException('Wrong password.');
     }
 
-    const payloadAccess = { tokenType: 'accessToken', sub: user.userId, username: user.username };
-    const payloadRefresh = { tokenType: 'refreshToken' };
-    const accessToken = await this.jwtService.signAsync(payloadAccess, accessTokenConfig);
-    const refreshToken = await this.jwtService.signAsync(payloadRefresh, refreshTokenConfig);
+    const { accessToken, refreshToken } = await this.tokensHandler(user, res);
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 
-  async signUp(username: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async signUp(
+    username: string,
+    password: string,
+    res: Response
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     if (!username || !password) {
       throw new BadRequestException('Username and password are required.');
     }
@@ -54,21 +58,27 @@ export class AuthService {
     const userData = { username: username, password: hashedPassword };
     const createdUser = await this.userService.createUser(userData);
 
-    const payloadAccess = { tokenType: 'accessToken', sub: createdUser.userId, username: createdUser.username };
-    const payloadRefresh = { tokenType: 'refreshToken' };
-    const accessToken = await this.jwtService.signAsync(payloadAccess, accessTokenConfig);
-    const refreshToken = await this.jwtService.signAsync(payloadRefresh, refreshTokenConfig);
-    await this.prisma.refreshTokens.create({
-      data: {
-        refreshToken: refreshToken,
-        expiresAt: new Date(Date.now() + convertDaysToMs(7)),
-        userId: createdUser.userId,
-      },
-    });
+    const { accessToken, refreshToken } = await this.tokensHandler(createdUser, res);
 
     return {
       accessToken,
       refreshToken,
     };
+  }
+
+  async updateTokens(req: ExtendedRequest, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
+    const { accessToken, refreshToken } = await this.tokensHandler(req.user, res);
+    return { accessToken, refreshToken };
+  }
+
+  private async tokensHandler(user: Users, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
+    const payloadAccess = { tokenType: 'accessToken', sub: user.userId, username: user.username };
+    const payloadRefresh = { tokenType: 'refreshToken' };
+    const accessToken = await this.jwtService.signAsync(payloadAccess, accessTokenConfig);
+    const refreshToken = await this.jwtService.signAsync(payloadRefresh, refreshTokenConfig);
+    await this.refreshTokenService.upsertToken(refreshToken, user.userId);
+    res.cookie('refreshToken', refreshToken, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true });
+
+    return { accessToken, refreshToken };
   }
 }

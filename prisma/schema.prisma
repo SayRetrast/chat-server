@@ -17,8 +17,7 @@ model Users {
 }
 
 model RefreshTokens {
-  refreshToken String   @id @unique
-  expiresAt    DateTime
-  user         Users    @relation(fields: [userId], references: [userId])
-  userId       String
+  refreshToken String @id @unique
+  user         Users  @relation(fields: [userId], references: [userId])
+  userId       String @unique
 }

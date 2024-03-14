@@ -3,15 +3,10 @@ import { AuthController } from 'src/controllers/auth.controller';
 import { AuthService } from 'src/services/auth.service';
 import { UserModule } from './user.module';
 import { JwtModule } from '@nestjs/jwt';
+import { RefreshTokenModule } from './refreshToken.module';
 
 @Module({
-  imports: [
-    UserModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET_KEY,
-    }),
-  ],
+  imports: [UserModule, JwtModule.register({ global: true }), RefreshTokenModule],
   controllers: [AuthController],
   providers: [AuthService],
 })
