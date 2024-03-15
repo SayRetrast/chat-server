@@ -1,5 +1,5 @@
 export const accessTokenConfig = {
-  expiresIn: '30min',
+  expiresIn: '5min',
   secret: process.env.ACCESS_TOKEN_SECRET_KEY,
 };
 

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthDto } from 'src/dtos/auth.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
+import { AuthRefreshGuard } from 'src/guards/auth/auth.refresh.guard';
 import { ExtendedRequest } from 'src/interfaces/extendedRequest.interface';
 import { AuthService } from 'src/services/auth.service';
 
@@ -19,7 +19,7 @@ export class AuthController {
     return this.authService.signUp(signUpData.username, signUpData.password, res);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthRefreshGuard)
   @Get()
   async authenticate(@Req() req: ExtendedRequest, @Res({ passthrough: true }) res: Response) {
     return this.authService.updateTokens(req, res);

@@ -18,6 +18,6 @@ model Users {
 
 model RefreshTokens {
   refreshToken String @id @unique
-  user         Users  @relation(fields: [userId], references: [userId])
+  user         Users  @relation(fields: [userId], references: [userId], onDelete: Cascade)
   userId       String @unique
 }

@@ -1,11 +1,10 @@
-import { BadRequestException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from './user.service';
 import { compare, hash } from 'bcrypt';
 import { accessTokenConfig, refreshTokenConfig } from '../lib/jwt.config';
 import { Response } from 'express';
 import { RefreshTokenService } from './refreshToken.service';
-import { Users } from '@prisma/client';
 import { ExtendedRequest } from 'src/interfaces/extendedRequest.interface';
 
 @Injectable()
@@ -31,11 +30,10 @@ export class AuthService {
     }
     const isMatchPasswords = await compare(password, user.password);
     if (!isMatchPasswords) {
-      throw new UnauthorizedException('Wrong password.');
+      throw new BadRequestException('Wrong password.');
     }
 
     const { accessToken, refreshToken } = await this.tokensHandler(user, res);
-
     return { accessToken, refreshToken };
   }
 
@@ -59,11 +57,7 @@ export class AuthService {
     const createdUser = await this.userService.createUser(userData);
 
     const { accessToken, refreshToken } = await this.tokensHandler(createdUser, res);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 
   async updateTokens(req: ExtendedRequest, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
@@ -71,14 +65,16 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async tokensHandler(user: Users, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
-    const payloadAccess = { tokenType: 'accessToken', sub: user.userId, username: user.username };
-    const payloadRefresh = { tokenType: 'refreshToken' };
+  private async tokensHandler(
+    user: { userId: string; username: string },
+    res: Response
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const payloadAccess = { sub: user.userId, username: user.username };
+    const payloadRefresh = {};
     const accessToken = await this.jwtService.signAsync(payloadAccess, accessTokenConfig);
     const refreshToken = await this.jwtService.signAsync(payloadRefresh, refreshTokenConfig);
     await this.refreshTokenService.upsertToken(refreshToken, user.userId);
     res.cookie('refreshToken', refreshToken, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true });
-
     return { accessToken, refreshToken };
   }
 }
