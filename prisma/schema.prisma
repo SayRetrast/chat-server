@@ -22,7 +22,6 @@ model Users {
 model Messages {
   messageId  Int      @id @unique @default(autoincrement())
   text       String
-  dialogId   Int
   fromUserId String
   toUserId   String
   createdAt  DateTime @default(now())
