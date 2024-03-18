@@ -10,6 +10,12 @@ export class UserService {
     return this.prisma.users.create({ data });
   }
 
+  async findUserById(userId: string): Promise<UserModel | null> {
+    return this.prisma.users.findUnique({
+      where: { userId: userId },
+    });
+  }
+
   async findUserByUsername(username: string): Promise<UserModel | null> {
     return this.prisma.users.findUnique({
       where: { username: username },
@@ -20,7 +26,7 @@ export class UserService {
     return this.prisma.users.findMany();
   }
 
-  async findUserById(userId: string): Promise<UserModel | null> {
-    return this.prisma.users.findUnique({ where: { userId: userId } });
+  async deleteUser(userId: string): Promise<UserModel> {
+    return this.prisma.users.delete({ where: { userId: userId } });
   }
 }

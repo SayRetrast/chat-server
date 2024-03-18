@@ -1,26 +1,26 @@
-import { UserDto } from 'src/dtos/user.dto';
-import { UserService } from 'src/services/user.service';
-import { Users as UserModel } from '@prisma/client';
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
 import { AuthAccessGuard } from 'src/guards/auth/auth.access.guard';
+import { UserService } from 'src/services/user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  async signUpUser(@Body() userData: UserDto): Promise<UserModel> {
-    return this.userService.createUser(userData);
+  @UseGuards(AuthAccessGuard)
+  @Get(':userId')
+  async getUserById(@Param('userId') userId: string) {
+    return this.userService.findUserById(userId);
   }
 
   @UseGuards(AuthAccessGuard)
-  @Get('users')
-  async getAllUsers(): Promise<UserModel[]> {
+  @Get('all')
+  async getAllUsers() {
     return this.userService.findAllUsers();
   }
 
-  @Get(':username')
-  async getUser(@Param('username') username: string): Promise<UserModel | null> {
-    return this.userService.findUserByUsername(username);
+  @UseGuards(AuthAccessGuard)
+  @Delete(':userId')
+  async deleteUser(@Param('userId') userId: string) {
+    return this.userService.deleteUser(userId);
   }
 }
