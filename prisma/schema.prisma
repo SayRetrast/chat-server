@@ -14,27 +14,21 @@ model Users {
   avatar        String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  Messages      Messages[]
   RefreshTokens RefreshTokens[]
-}
-
-model Dialogs {
-  dialogId  Int        @id @unique @default(autoincrement())
-  isPinned  Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  Messages  Messages[]
+  fromUser      Messages[]      @relation("fromUser")
+  toUser        Messages[]      @relation("toUser")
 }
 
 model Messages {
-  messageId Int      @id @unique @default(autoincrement())
-  text      String
-  dialogId  Int
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  dialog    Dialogs  @relation(fields: [dialogId], references: [dialogId])
-  user      Users    @relation(fields: [userId], references: [userId])
+  messageId  Int      @id @unique @default(autoincrement())
+  text       String
+  dialogId   Int
+  fromUserId String
+  toUserId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  fromUser   Users    @relation("fromUser", fields: [fromUserId], references: [userId])
+  toUser     Users    @relation("toUser", fields: [toUserId], references: [userId])
 }
 
 model RefreshTokens {
