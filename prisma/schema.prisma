@@ -11,13 +11,36 @@ model Users {
   userId        String          @id @unique @default(uuid())
   username      String          @unique
   password      String
+  avatar        String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+  Messages      Messages[]
   RefreshTokens RefreshTokens[]
 }
 
+model Dialogs {
+  dialogId  Int        @id @unique @default(autoincrement())
+  isPinned  Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Messages  Messages[]
+}
+
+model Messages {
+  messageId Int      @id @unique @default(autoincrement())
+  text      String
+  dialogId  Int
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  dialog    Dialogs  @relation(fields: [dialogId], references: [dialogId])
+  user      Users    @relation(fields: [userId], references: [userId])
+}
+
 model RefreshTokens {
-  refreshToken String @id @unique
-  user         Users  @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  userId       String @unique
+  refreshToken String   @id @unique
+  userId       String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         Users    @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
