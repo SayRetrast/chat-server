@@ -26,11 +26,11 @@ export class AuthService {
 
     const user = await this.userService.findUserByUsername(username);
     if (!user) {
-      throw new BadRequestException('User with such username is not found.');
+      throw new BadRequestException('Wrong username or password.');
     }
     const isMatchPasswords = await compare(password, user.password);
     if (!isMatchPasswords) {
-      throw new BadRequestException('Wrong password.');
+      throw new BadRequestException('Wrong username or password.');
     }
 
     const { accessToken, refreshToken } = await this.tokensHandler(user, res);
