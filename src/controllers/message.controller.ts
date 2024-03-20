@@ -28,12 +28,12 @@ export class MessageController {
   @UseGuards(AuthAccessGuard, MessageOwnerGuard)
   @Put(':messageId')
   async changeMessage(@Param('messageId') messageId: number, @Body() messageData: MessageDto) {
-    return this.messageService.updateMessage(messageData.text, messageId);
+    return this.messageService.updateMessage(messageData.text, +messageId);
   }
 
   @UseGuards(AuthAccessGuard, MessageOwnerGuard)
   @Delete(':messageId')
   async deleteMessage(@Param('messageId') messageId: number) {
-    return this.messageService.deleteMessage(messageId);
+    return this.messageService.deleteMessage(+messageId);
   }
 }
