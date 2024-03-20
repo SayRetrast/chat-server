@@ -1,5 +1,4 @@
-export class UserDto {
+export class AuthDto {
   username: string;
   password: string;
-  avatar?: string;
 }

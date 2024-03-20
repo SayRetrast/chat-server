@@ -1,19 +1,36 @@
-import { UserDto } from 'src/dtos/user.dto';
+import { BadRequestException, Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
+import { AuthAccessGuard } from 'src/guards/auth/auth.access.guard';
 import { UserService } from 'src/services/user.service';
-import { User as UserModel } from '@prisma/client';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  async signUpUser(@Body() userData: UserDto): Promise<UserModel> {
-    return this.userService.createUser(userData);
+  @UseGuards(AuthAccessGuard)
+  @Get('all')
+  async getAllUsers() {
+    return this.userService.findAllUsers();
   }
 
-  @Get(':username')
-  async getUser(@Param('username') username: string): Promise<UserModel | null> {
-    return this.userService.findUserByUsername(username);
+  @UseGuards(AuthAccessGuard)
+  @Get(':userId')
+  async getUserById(@Param('userId') userId: string) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) {
+      throw new BadRequestException('User is not found.');
+    }
+
+    return user;
+  }
+
+  @UseGuards(AuthAccessGuard)
+  @Delete(':userId')
+  async deleteUser(@Param('userId') userId: string) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) {
+      throw new BadRequestException('User is not found.');
+    }
+
+    return this.userService.deleteUser(userId);
   }
 }
