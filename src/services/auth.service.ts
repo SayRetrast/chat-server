@@ -15,11 +15,12 @@ export class AuthService {
     private readonly refreshTokenService: RefreshTokenService
   ) {}
 
-  async signIn(
-    username: string,
-    password: string,
-    res: Response
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async signOut(req: ExtendedRequest, res: Response) {
+    await this.refreshTokenService.deleteToken(req.user.userId);
+    res.clearCookie('refreshToken');
+  }
+
+  async signIn(username: string, password: string, res: Response): Promise<{ accessToken: string }> {
     if (!username || !password) {
       throw new BadRequestException('Username and password are required.');
     }
@@ -33,15 +34,11 @@ export class AuthService {
       throw new BadRequestException('Wrong username or password.');
     }
 
-    const { accessToken, refreshToken } = await this.tokensHandler(user, res);
-    return { accessToken, refreshToken };
+    const { accessToken } = await this.tokensHandler(user, res);
+    return { accessToken };
   }
 
-  async signUp(
-    username: string,
-    password: string,
-    res: Response
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async signUp(username: string, password: string, res: Response): Promise<{ accessToken: string }> {
     if (!username || !password) {
       throw new BadRequestException('Username and password are required.');
     }
@@ -56,25 +53,30 @@ export class AuthService {
     const userData = { username: username, password: hashedPassword };
     const createdUser = await this.userService.createUser(userData);
 
-    const { accessToken, refreshToken } = await this.tokensHandler(createdUser, res);
-    return { accessToken, refreshToken };
+    const { accessToken } = await this.tokensHandler(createdUser, res);
+    return { accessToken };
   }
 
-  async updateTokens(req: ExtendedRequest, res: Response): Promise<{ accessToken: string; refreshToken: string }> {
-    const { accessToken, refreshToken } = await this.tokensHandler(req.user, res);
-    return { accessToken, refreshToken };
+  async updateTokens(req: ExtendedRequest, res: Response): Promise<{ accessToken: string }> {
+    const { accessToken } = await this.tokensHandler(req.user, res);
+    return { accessToken };
   }
 
   private async tokensHandler(
     user: { userId: string; username: string },
     res: Response
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string }> {
     const payloadAccess = { sub: user.userId, username: user.username };
     const payloadRefresh = {};
     const accessToken = await this.jwtService.signAsync(payloadAccess, accessTokenConfig);
     const refreshToken = await this.jwtService.signAsync(payloadRefresh, refreshTokenConfig);
     await this.refreshTokenService.upsertToken(refreshToken, user.userId);
-    res.cookie('refreshToken', refreshToken, { maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true });
-    return { accessToken, refreshToken };
+    res.cookie('refreshToken', refreshToken, {
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+    });
+    return { accessToken };
   }
 }

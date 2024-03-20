@@ -29,4 +29,8 @@ export class RefreshTokenService {
       create: { refreshToken: refreshToken, userId: userId },
     });
   }
+
+  async deleteToken(userId: string): Promise<RefreshTokensModel> {
+    return this.prisma.refreshTokens.delete({ where: { userId: userId } });
+  }
 }

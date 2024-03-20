@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { AuthRefreshGuard } from 'src/guards/auth/auth.refresh.guard';
 import { ExtendedRequest } from 'src/interfaces/extendedRequest.interface';
 import { AuthService } from 'src/services/auth.service';
+import { AuthAccessGuard } from '../guards/auth/auth.access.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -17,6 +18,12 @@ export class AuthController {
   @Post('registration')
   async signUp(@Body() signUpData: AuthDto, @Res({ passthrough: true }) res: Response) {
     return this.authService.signUp(signUpData.username, signUpData.password, res);
+  }
+
+  @UseGuards(AuthAccessGuard, AuthRefreshGuard)
+  @Delete('/logout')
+  async signOut(@Req() req: ExtendedRequest, @Res({ passthrough: true }) res: Response) {
+    return this.authService.signOut(req, res);
   }
 
   @UseGuards(AuthRefreshGuard)
