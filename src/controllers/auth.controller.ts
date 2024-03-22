@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Post, Req, Res, UseGuards, Put } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { AuthRefreshGuard } from 'src/guards/auth/auth.refresh.guard';
@@ -27,7 +27,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthRefreshGuard)
-  @Get()
+  @Put()
   async authenticate(@Req() req: ExtendedRequest, @Res({ passthrough: true }) res: Response) {
     return this.authService.updateTokens(req, res);
   }
