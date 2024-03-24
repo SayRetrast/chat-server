@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { Dialogs } from '@prisma/client';
+import { Dialogs, Prisma } from '@prisma/client';
 
 @Injectable()
 export class DialogService {
@@ -31,6 +31,28 @@ export class DialogService {
     if (dialogOne) return dialogOne;
     if (dialogTwo) return dialogTwo;
     return null;
+  }
+
+  async findUserDialogs(userId: string): Promise<Dialogs[]> {
+    const selectUserObj: Prisma.UsersSelect = {
+      username: true,
+      userId: true,
+      avatar: true,
+    };
+
+    return this.prisma.dialogs.findMany({
+      where: {
+        OR: [{ userOneId: userId }, { userTwoId: userId }],
+      },
+      include: {
+        userOne: {
+          select: selectUserObj,
+        },
+        userTwo: {
+          select: selectUserObj,
+        },
+      },
+    });
   }
 
   async createDialog(userOneId: string, userTwoId: string): Promise<Dialogs> {
