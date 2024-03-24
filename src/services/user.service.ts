@@ -28,6 +28,17 @@ export class UserService {
     });
   }
 
+  async findUsersByUsername(username: string): Promise<UserModel[]> {
+    return this.prisma.users.findMany({
+      where: { username: { contains: username, mode: 'insensitive' } },
+      select: {
+        username: true,
+        userId: true,
+        avatar: true,
+      },
+    });
+  }
+
   async findAllUsers(): Promise<UserModel[]> {
     return this.prisma.users.findMany({
       select: {
