@@ -15,7 +15,7 @@ export class MessageOwnerGuard implements CanActivate {
       throw new BadRequestException('Message is not found.');
     }
 
-    if (message.fromUserId !== req.user.userId) {
+    if (message.userId !== req.user.userId) {
       throw new ForbiddenException("Can't change not owned message.");
     }
 

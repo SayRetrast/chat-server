@@ -1,5 +1,7 @@
 export class MessageDto {
+  messageId: string;
   text: string;
-  fromUserId?: string;
-  toUserId?: string;
+  dialogId: string;
+  createdAt: string;
+  updatedAt: string;
 }

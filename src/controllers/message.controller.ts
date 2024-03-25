@@ -5,34 +5,34 @@ import { MessageService } from 'src/services/message.service';
 import { AuthAccessGuard } from '../guards/auth/auth.access.guard';
 import { MessageOwnerGuard } from 'src/guards/message.owner.guard';
 
-@Controller('message')
+@Controller('messages')
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @UseGuards(AuthAccessGuard)
-  @Post(':toUserId')
-  async sendMessage(@Body() messageData: MessageDto, @Param('toUserId') toUserId: string, @Req() req: ExtendedRequest) {
+  @Post('message/:dialogId')
+  async sendMessage(@Body() messageData: MessageDto, @Param('dialogId') dialogId: string, @Req() req: ExtendedRequest) {
     return this.messageService.createMessage({
       text: messageData.text,
-      fromUserId: req.user.userId,
-      toUserId: toUserId,
+      userId: req.user.userId,
+      dialogId: dialogId,
     });
   }
 
   @UseGuards(AuthAccessGuard)
-  @Get(':toUserId')
-  async getDialogMessages(@Param('toUserId') toUserId: string, @Req() req: ExtendedRequest) {
-    return this.messageService.findDialogMessages(req.user.userId, toUserId);
+  @Get('dialog/:dialogId')
+  async getDialogMessages(@Param('dialogId') dialogId: string) {
+    return this.messageService.findDialogMessages(dialogId);
   }
 
   @UseGuards(AuthAccessGuard, MessageOwnerGuard)
-  @Put(':messageId')
+  @Put('message/:messageId')
   async changeMessage(@Param('messageId') messageId: number, @Body() messageData: MessageDto) {
     return this.messageService.updateMessage(messageData.text, +messageId);
   }
 
   @UseGuards(AuthAccessGuard, MessageOwnerGuard)
-  @Delete(':messageId')
+  @Delete('message:messageId')
   async deleteMessage(@Param('messageId') messageId: number) {
     return this.messageService.deleteMessage(+messageId);
   }
