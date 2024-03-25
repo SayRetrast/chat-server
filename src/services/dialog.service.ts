@@ -6,8 +6,26 @@ import { Dialogs, Prisma } from '@prisma/client';
 export class DialogService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private readonly selectUserObj: Prisma.UsersSelect = {
+    username: true,
+    userId: true,
+    avatar: true,
+  };
+
   async findDialogById(dialogId: string): Promise<Dialogs | null> {
-    return this.prisma.dialogs.findUnique({ where: { dialogId: dialogId } });
+    return this.prisma.dialogs.findUnique({
+      where: {
+        dialogId: dialogId,
+      },
+      include: {
+        userOne: {
+          select: this.selectUserObj,
+        },
+        userTwo: {
+          select: this.selectUserObj,
+        },
+      },
+    });
   }
 
   async findDialogByUsers(userOneId: string, userTwoId: string): Promise<Dialogs | null> {
@@ -34,22 +52,16 @@ export class DialogService {
   }
 
   async findUserDialogs(userId: string): Promise<Dialogs[]> {
-    const selectUserObj: Prisma.UsersSelect = {
-      username: true,
-      userId: true,
-      avatar: true,
-    };
-
     return this.prisma.dialogs.findMany({
       where: {
         OR: [{ userOneId: userId }, { userTwoId: userId }],
       },
       include: {
         userOne: {
-          select: selectUserObj,
+          select: this.selectUserObj,
         },
         userTwo: {
-          select: selectUserObj,
+          select: this.selectUserObj,
         },
       },
     });
