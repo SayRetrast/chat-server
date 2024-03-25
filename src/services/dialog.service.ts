@@ -67,6 +67,12 @@ export class DialogService {
     });
   }
 
+  async findReceiverIds(userId: string): Promise<string[]> {
+    const dialogs = await this.findUserDialogs(userId);
+    const receiverIds = dialogs.map((dialog) => (dialog.userOneId === userId ? dialog.userTwoId : dialog.userOneId));
+    return receiverIds;
+  }
+
   async createDialog(userOneId: string, userTwoId: string): Promise<Dialogs> {
     const dialog = await this.findDialogByUsers(userOneId, userTwoId);
     if (dialog) {

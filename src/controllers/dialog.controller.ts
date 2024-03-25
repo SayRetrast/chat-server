@@ -14,6 +14,12 @@ export class DialogController {
   }
 
   @UseGuards(AuthAccessGuard)
+  @Get('receivers')
+  async getReceiverIds(@Req() req: ExtendedRequest) {
+    return this.dialogService.findReceiverIds(req.user.userId);
+  }
+
+  @UseGuards(AuthAccessGuard)
   @Get('dialog/:dialogId')
   async getDialogById(@Param('dialogId') dialogId: string) {
     return this.dialogService.findDialogById(dialogId);
